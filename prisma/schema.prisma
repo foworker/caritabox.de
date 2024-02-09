@@ -106,7 +106,6 @@ model ProductOptionsOnGroups {
 }
 
 model Insured {
-  // id              String    @id @default(auto()) @map("_id") @db.ObjectId
   id              String    @id @default(auto()) @map("_id") @db.ObjectId
   gender          Gender
   name            String
@@ -128,7 +127,6 @@ model Insured {
 }
 
 model Carer {
-  // id          String   @id @default(auto()) @map("_id") @db.ObjectId
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   gender      Gender
   name        String
@@ -144,7 +142,6 @@ model Carer {
 }
 
 model Insurance {
-  // id          String    @id @default(auto()) @map("_id") @db.ObjectId
   id          String    @id @default(auto()) @map("_id") @db.ObjectId
   name        String
   description String?

@@ -1,22 +1,22 @@
-import { FC } from "react";
 import Image from "next/image";
+import cuid from "cuid";
 import { BsPlusCircleFill } from "react-icons/bs";
-import { useCartStore } from "@/hooks";
-import { ProductProps } from "@/types";
-import Cart from "../cart";
+
 import { cn } from "@/libs/utils";
 
-type StepsOneProps = {
-  products: ProductProps[];
-};
+import { ProductProps, ProductsProps } from "@/types";
+import { useCartStore } from "@/hooks";
 
-const StepOne: FC<StepsOneProps> = ({ products }) => {
-  const { add, cartTotal } = useCartStore();
+import Cart from "../cart";
+
+const StepOne = ({ products }: ProductsProps) => {
+  const { cart, add, cartTotal } = useCartStore();
 
   const handleClick = (product: ProductProps) => {
-    if (cartTotal < 100) add(product);
+    if (cartTotal < 100) {
+      add(product);
+    }
   };
-  //console.log(products);
   return (
     <div className="">
       <p className="text-sm">

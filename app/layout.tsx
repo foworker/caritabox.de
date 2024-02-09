@@ -6,13 +6,22 @@ import Providers from "@/providers";
 import { Footer, Header } from "@/components/common";
 import axios from "axios";
 import { useProductStore } from "@/hooks";
+import { siteConfig } from "@/config/siteConfig";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Caritabox | Pflegehilfsmittel und Notrufgeräte",
-  description:
-    "Kostenlose Pflegehilfsmittel: Für Personen mit einem Pflegegrad im Wert von 40 pro Monat Einmal beantragen, immer erhalten",
+  title: {
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
+  },
+  description: siteConfig.description,
+  icons: [
+    {
+      url: "/favicon.png",
+      href: "/favicon.png",
+    },
+  ],
 };
 export default function RootLayout({
   children,
@@ -21,7 +30,6 @@ export default function RootLayout({
 }) {
   return (
     <html suppressHydrationWarning lang="de" className={inter.className}>
-      <link rel="icon" href="/favicon.png" />
       <body>
         <Providers>
           <Header />

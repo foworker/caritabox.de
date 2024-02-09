@@ -15,8 +15,8 @@ const AccountPage = async () => {
             </h3>
 
             <div>
-              <p>sifre input</p>
-              <input type="text" placeholder="sifre belirle" />
+              <p>password input</p>
+              <input type="text" placeholder="password" />
               <p>button</p>
             </div>
           </div>

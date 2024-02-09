@@ -5,99 +5,203 @@ import { ProductProps } from "@/types";
 
 interface CartItem extends ProductProps {
   count: number;
+  selectedOptions?: Record<string, string>;
 }
+
+type InsuranceDataProps = {
+  salutation: string;
+  firstName: string;
+  lastName: string;
+  street: string;
+  houseNumber: string;
+  postCode: string;
+  city: string;
+  birthDate: string;
+  phone: string;
+  email: string;
+  insuranceCompany: string;
+  insuranceNumber: string;
+  careLevel: string;
+};
+
+type CareerDataProps = {
+  salutation: string;
+  firstName: string;
+  lastName: string;
+  street: string;
+  houseNumber: string;
+  postCode: string;
+  city: string;
+  phone: string;
+};
+type DeliveryType = "insurance" | "career" | "";
 
 type CartStore = {
   cart: CartItem[];
-  count: () => number;
   cartTotal: number;
-  add: (product: ProductProps) => void;
+  badPad: boolean;
+  insuranceData: InsuranceDataProps;
+  careerData: CareerDataProps;
+  count: () => number;
+  deliveryAddress: DeliveryType;
+  add: (product: ProductProps, options?: Record<string, string>) => void;
+  updateProductOptions: (
+    productCartId: string,
+    options: Record<string, string>,
+  ) => void;
   remove: (idProduct: string, productCartId: string) => void;
   removeAll: () => void;
+  changeBadPad: (value: boolean) => void;
+  setInsuranceData: (insurance: Partial<InsuranceDataProps>) => void;
+  setCareerData: (career: Partial<CareerDataProps>) => void;
+  setDeliveryAddress: (e: DeliveryType) => void;
+  signature: string;
+  setSignature: (e: any) => void;
 };
 
 export const useCartStore = create<CartStore>((set, get) => ({
   cart: [],
+  cartTotal: 0,
+  badPad: false,
+  signature: "",
+  insuranceData: {
+    salutation: "Frau",
+    firstName: "",
+    lastName: "",
+    street: "",
+    houseNumber: "",
+    postCode: "",
+    city: "",
+    birthDate: "",
+    phone: "",
+    email: "",
+    insuranceCompany: "",
+    insuranceNumber: "",
+    careLevel: "Pflegegrad 1",
+  },
+  careerData: {
+    salutation: "",
+    firstName: "",
+    lastName: "",
+    street: "",
+    houseNumber: "",
+    postCode: "",
+    city: "",
+    phone: "",
+  },
+  deliveryAddress: "",
+  setCareerData: (career) =>
+    set((state) => ({
+      careerData: { ...state.careerData, ...career },
+    })),
+  setInsuranceData: (insurance) =>
+    set((state) => ({
+      insuranceData: { ...state.insuranceData, ...insurance },
+    })),
+
   count: () => {
     const { cart } = get();
-    if (cart.length)
-      return cart.map((item) => item.count).reduce((prev, curr) => prev + curr);
-    return 0;
+    return cart.reduce((total, item) => total + item.count, 0);
   },
 
-  cartTotal: 0,
+  add: (product, options = {}) => {
+    let cart = get().cart;
+    product.productCartId = cuid();
+    const cartItem = {
+      ...product,
+      count: 1,
+      selectedOptions: options,
+    };
 
-  add: (product: ProductProps) => {
-    const { cart } = get();
-    const updatedCart = updateCart(product, cart);
-    const newTotal = calculateTotal(updatedCart);
-    set({ cart: updatedCart, cartTotal: newTotal });
-  },
-  remove: (idProduct: string, productCartId: string) => {
-    const { cart } = get();
-    const updatedCart = removeCart(idProduct, productCartId, cart);
-    const newTotal = calculateTotal(updatedCart);
-    set({ cart: updatedCart, cartTotal: newTotal });
-  },
-  removeAll: () => set({ cart: [], cartTotal: 0 }),
-}));
-
-function updateCart(product: ProductProps, cart: CartItem[]): CartItem[] {
-  const id = cuid();
-  const cartItem = {
-    ...product,
-    count: 1,
-    productCartId: id,
-  } as CartItem;
-
-  if (product.optionGroups && product.optionGroups.length > 0) {
-    cart.push(cartItem);
-  } else {
-    const productOnCart = cart.map((item) => item.id).includes(product.id);
-
-    if (!productOnCart) cart.push(cartItem);
-    else {
-      return cart.map((item) => {
-        if (item.id === product.id)
-          return {
-            ...item,
-            count: item.count + 1,
-            qty: product.qty + item.qty,
-          } as CartItem;
-        return item;
-      });
+    if (cartItem.optionGroups.length) {
+      cart = updateCartWithoutOptions(cartItem, cart);
+      set({ cart, cartTotal: calculateTotal(cart) });
+    } else {
+      cart = updateCartWithOptions(cartItem, cart);
+      set({ cart, cartTotal: calculateTotal(cart) });
     }
-  }
-  return cart;
-}
+  },
 
-function removeCart(
-  idProduct: string,
-  productCartId: string,
-  cart: CartItem[],
-): CartItem[] {
-  return cart
-    .map((item) => {
-      if (item.id === idProduct && item.productCartId === productCartId) {
-        let qty = item.qty / item.count;
-        return {
-          ...item,
-          count: item.count - 1,
-          qty: item.qty - qty,
-        };
+  updateProductOptions: (productCartId, options) => {
+    let cart = get().cart;
+    cart = cart.map((item) => {
+      if (item.productCartId === productCartId) {
+        return { ...item, selectedOptions: options };
       }
       return item;
-    })
-    .filter((item) => {
-      return item.count;
     });
+    set({ cart, cartTotal: calculateTotal(cart) });
+  },
+
+  remove: (idProduct, productCartId) => {
+    let cart = get().cart;
+    cart = cart.filter(
+      (item) => item.id !== idProduct || item.productCartId !== productCartId,
+    );
+    set({ cart, cartTotal: calculateTotal(cart) });
+  },
+
+  removeAll: () => {
+    set({ cart: [], cartTotal: 0 });
+  },
+
+  changeBadPad: (value) => set(() => ({ badPad: value })),
+  setDeliveryAddress: (value) => set(() => ({ deliveryAddress: value })),
+  setSignature: (value) => set(() => ({ setSignature: value })),
+}));
+
+function updateCartWithOptions(
+  newCartItem: CartItem,
+  cart: CartItem[],
+): CartItem[] {
+  const existingItemIndex = cart.findIndex(
+    (item) =>
+      item.id === newCartItem.id &&
+      JSON.stringify(item.selectedOptions) ===
+        JSON.stringify(newCartItem.selectedOptions),
+  );
+
+  if (existingItemIndex !== -1) {
+    const existingItem = cart[existingItemIndex];
+    return [
+      ...cart.slice(0, existingItemIndex),
+      {
+        ...existingItem,
+        count: existingItem.count + 1,
+      },
+      ...cart.slice(existingItemIndex + 1),
+    ];
+  } else {
+    return [...cart, newCartItem];
+  }
+}
+
+function updateCartWithoutOptions(
+  newCartItem: CartItem,
+  cart: CartItem[],
+): CartItem[] {
+  const existingItemIndex = cart.findIndex(
+    (item) =>
+      item.productCartId === newCartItem.productCartId &&
+      JSON.stringify(item.selectedOptions) ===
+        JSON.stringify(newCartItem.selectedOptions),
+  );
+
+  if (existingItemIndex !== -1) {
+    const existingItem = cart[existingItemIndex];
+    return [
+      ...cart.slice(0, existingItemIndex),
+      {
+        ...existingItem,
+        count: existingItem.count + 1,
+      },
+      ...cart.slice(existingItemIndex + 1),
+    ];
+  } else {
+    return [...cart, newCartItem];
+  }
 }
 
 function calculateTotal(cart: CartItem[]): number {
-  const total = cart.reduce(
-    (total, item) => total + item.price * item.count,
-    0,
-  );
-  if (total > 100) return 100;
-  return Math.round(total);
+  return cart.reduce((total, item) => total + item.price * item.count, 0);
 }

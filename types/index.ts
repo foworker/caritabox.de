@@ -28,6 +28,7 @@ export type ProductProps = {
         option: {
           id: string;
           name: string;
+          selected: boolean;
         };
       }[];
     };
@@ -37,5 +38,11 @@ export type ProductProps = {
 };
 
 export type ProductsProps = {
-  product: ProductProps[];
+  products: ProductProps[];
+};
+
+export type CareInsuranceProps = {
+  id: string;
+  name: string;
+  description: string;
 };

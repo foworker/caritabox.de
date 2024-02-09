@@ -1,19 +1,16 @@
 "use client";
-
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { signIn } from "next-auth/react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 
 import { Button, Input } from "@/components/caritabox";
 import { userLogin } from "@/validations";
 
 const LoginForm = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/account";
   const [isLoading, setIsLoading] = useState(false);
   const {
     register,
@@ -36,7 +33,7 @@ const LoginForm = () => {
 
       if (!callback?.error) {
         toast.success("Eingeloggt");
-        router.push(callbackUrl);
+        router.push("/");
         reset();
       }
       if (callback?.error) {

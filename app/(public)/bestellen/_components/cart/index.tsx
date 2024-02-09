@@ -1,43 +1,37 @@
 "use client";
 
-import Image from "next/image";
+import { useEffect, useState } from "react";
 import { IoBan } from "react-icons/io5";
+import Image from "next/image";
 
-import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { useCartStore } from "@/hooks";
 import StepButtons from "../buttons";
 import CartProgress from "../cart-progress";
-import { Label } from "@/components/ui/label";
-import { useEffect, useState } from "react";
 
 const Cart = () => {
-  const { cart, remove, removeAll } = useCartStore();
+  const { cart, remove, removeAll, badPad, changeBadPad, cartTotal } =
+    useCartStore();
   const [selectedOptions, setSelectedOptions] = useState<
     Record<string, string>
   >({});
 
   useEffect(() => {
-    const defaultSelectedOptions = cart.reduce(
-      (acc, product) => {
-        product.optionGroups.forEach((group) => {
-          if (group.optionGroup.options.length > 0) {
-            const uniqueId = `${product.productCartId}-${group.id}`;
-            if (!acc[uniqueId]) {
-              acc[uniqueId] = group.optionGroup.options[0].id;
-            }
-          }
-        });
-        return acc;
-      },
-      {} as Record<string, string>,
-    );
-
-    setSelectedOptions((prevSelected) => ({
-      ...prevSelected,
-      ...defaultSelectedOptions,
-    }));
-  }, [cart]);
+    const initialSelections: Record<string, string> = {};
+    cart.forEach((product) => {
+      product.optionGroups.forEach((group) => {
+        const uniqueId = `${product.productCartId}-${group.id}`;
+        const firstOptionId = group.optionGroup.options[0]?.id;
+        if (firstOptionId) {
+          initialSelections[uniqueId] = firstOptionId;
+        }
+      });
+    });
+    setSelectedOptions(initialSelections);
+  }, [cart, badPad]);
 
   const handleSelectionChange = (
     productCartId: string,
@@ -50,7 +44,6 @@ const Cart = () => {
       [uniqueId]: selectedOptionId,
     }));
   };
-
   return (
     <div className="rounded-md bg-slate-100 p-5 dark:bg-slate-800">
       <header>
@@ -87,13 +80,16 @@ const Cart = () => {
               <div className="text-caritabox-500">
                 <h3 className="text-sm">{product.title}</h3>
                 <p className="text-xs">
-                  {product.qty} {product.unit}
+                  {product.qty * product.count} {product.unit}
                 </p>
                 <div className="mt-3 flex flex-col space-y-2 text-black dark:text-white">
                   {product.optionGroups.map((group) => (
                     <div key={group.id} className="flex flex-col text-sm">
                       <h3 className="font-medium">{group.optionGroup.name}</h3>
-                      <RadioGroup className="grid grid-cols-4">
+                      <RadioGroup
+                        className="grid grid-cols-4"
+                        defaultValue={group.optionGroup.options[0].id}
+                      >
                         {group.optionGroup.options.map((option, key) => {
                           const uniqueId = `${product.productCartId}-${group.id}`;
                           return (
@@ -103,9 +99,9 @@ const Cart = () => {
                             >
                               <RadioGroupItem
                                 value={option.id}
-                                id={`opt-${product.productCartId + option.id}`}
+                                id={`${product.productCartId} - ${option.id}`}
                                 className="h-3 w-3"
-                                checked={
+                                defaultChecked={
                                   selectedOptions[uniqueId] === option.id
                                 }
                                 onClick={() =>
@@ -117,9 +113,7 @@ const Cart = () => {
                                 }
                               />
                               <Label
-                                htmlFor={`opt-${
-                                  product.productCartId + option.id
-                                }`}
+                                htmlFor={`${product.productCartId} - ${option.id}`}
                                 className="cursor-pointer p-1 pl-2 text-xs"
                               >
                                 {option.option.name}
@@ -143,7 +137,20 @@ const Cart = () => {
           </div>
         ))}
       </div>
-      <StepButtons />
+      <div className="flex space-x-3">
+        <Checkbox
+          name="badPad"
+          id="badPad"
+          checked={badPad}
+          onCheckedChange={(checked: boolean) => changeBadPad(checked)}
+        />
+        <label htmlFor="badPad" className="cursor-pointer text-sm text-red-500">
+          Zusätzlich beantrage ich bis zu 4 Stk. wiederverwendbare
+          Bettschutzeinlagen. Die Kosten werden von meiner Pflegekasse
+          übernommen.
+        </label>
+      </div>
+      <StepButtons disabled={cartTotal < 70 ? true : false} />
     </div>
   );
 };

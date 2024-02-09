@@ -11,7 +11,7 @@ const CartProgress = () => {
         style={{ width: `${cartTotal}%` }}
         className="absolute z-10 inline-flex h-8 items-center rounded-sm bg-caritabox-500 px-0.5 text-sm text-white"
       >
-        {cartTotal}%
+        {Math.round(cartTotal)}%
       </div>
     </div>
   );

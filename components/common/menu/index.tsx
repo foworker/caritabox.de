@@ -1,23 +1,19 @@
 "use client";
 
 import classNames from "classnames";
-import { signIn, signOut } from "next-auth/react";
 import { useEffect } from "react";
+import { signIn, signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { HiMenuAlt3 } from "react-icons/hi";
 
 import { useMenu } from "@/hooks";
 import { navLinks } from "@/mock";
-import { SafeUser } from "@/types";
 import { Avatar, NavLink } from "@/components/caritabox";
 
-type MenuProps = {
-  currentUser?: SafeUser | null;
-};
-
-export default function Menu({ currentUser }: MenuProps) {
+export default function Menu() {
   const menu = useMenu();
   const pathname = usePathname();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
     menu.onClose();
@@ -36,24 +32,22 @@ export default function Menu({ currentUser }: MenuProps) {
           },
         )}
       >
-        {currentUser?.role === "ADMIN" && (
+        {session?.user.role === "ADMIN" && (
           <NavLink name="Admin" href="/admin" />
         )}
         {navLinks.map((link, key) => {
           return <NavLink key={key} name={link.name} href={link.href} />;
         })}
-        {currentUser?.role === "USER" && (
+        {session?.user.role === "USER" && (
           <NavLink name="Kundenkonto" href="/account" />
         )}
-        {!currentUser ? (
-          // <NavLink name="Anmeldung" onClick={signIn} />
-          <NavLink name="Login" onClick={signIn} />
+        {status === "authenticated" ? (
+          <NavLink name="Abmeldung" onClick={signOut} />
         ) : (
-          // <NavLink name="Abmeldung" onClick={signOut} />
-          <NavLink name="Logout" onClick={signOut} />
+          <NavLink name="Anmeldung" onClick={signIn} />
         )}
       </nav>
-      {currentUser && <Avatar fullname={currentUser?.name} />}
+      {session?.user && <Avatar fullname={session.user.name} />}
       <div className="flex flex-row items-center justify-end gap-3">
         <HiMenuAlt3
           onClick={menu.onToggle}

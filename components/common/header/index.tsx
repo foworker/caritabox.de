@@ -2,10 +2,8 @@ import Link from "next/link";
 import { BiPhoneCall } from "react-icons/bi";
 
 import { Logo, Menu, ThemeSwitcher } from "@/components/common";
-import { getCurrentUser } from "@/libs";
 
 const Header = async () => {
-  const currentUser = await getCurrentUser();
   return (
     <header className="fixed top-0 z-[999] w-full bg-white/70 shadow-sm backdrop-blur-sm dark:bg-slate-900/80">
       <div className="bg-caritabox-500 px-4 lg:px-0">
@@ -22,7 +20,7 @@ const Header = async () => {
       <div className="container relative mx-auto flex items-center justify-between px-4 py-4 lg:px-0">
         <Logo />
         <div className="flex flex-row items-center gap-4 ">
-          <Menu currentUser={currentUser} />
+          <Menu />
         </div>
       </div>
     </header>
